@@ -1,13 +1,12 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
-from db_manager import MySQLDatabase
+
+
 
 #sql_credentials
 DB_HOST = "localhost"
 DB_PORT = "3306"
 DB_USER = "root"
-DB_PASSWORD = "Diptiranjan@1"
+DB_PASSWORD = "root"
 DB_DATABASE = "student_log"
 credentials = {
     "user": DB_USER,
@@ -28,7 +27,7 @@ LOG_DIR = os.path.join(BASE_DIR, 'logs')
 # DOCUMENT_DIR = os.path.join(BASE_DIR, 'documents')
 
 
-PORT = 9000
+PORT = 9005
 HOST = '0.0.0.0'
 DEBUG = False
 WORKERS = 2

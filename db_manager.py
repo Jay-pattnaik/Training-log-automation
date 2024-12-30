@@ -2,6 +2,7 @@ import mysql.connector
 import traceback
 import logging
 from mysql.connector import Error
+from utils import timedelta_to_12hr_format
 class MySQLDatabase:
     def __init__(self,**credentials):
         self.db_credentials = credentials
@@ -20,11 +21,12 @@ class MySQLDatabase:
 
             connection.commit()
             print("Student information inserted successfully.")
+            return {"status": 1, "student_name": student_name}
 
         except Error as e:
             logging.error("Error while inserting into student_info: %s", e)
             traceback.print_exc()
-
+            return {"status":0,"student_name":student_name}
         finally:
             cursor.close()
             connection.close()
@@ -41,11 +43,11 @@ class MySQLDatabase:
 
             connection.commit()
             print("Class information inserted successfully.")
-
+            return {"status": 1, "class_date":date}
         except Error as e:
             logging.error("Error while inserting into class_info: %s", e)
             traceback.print_exc()
-
+            return {"status": 0, "class_date": date}
         finally:
             if cursor:
                 cursor.close()
@@ -57,7 +59,6 @@ class MySQLDatabase:
         connection = mysql.connector.connect(**self.db_credentials)
         cursor = connection.cursor(dictionary=True)
         try:
-            # SQL query to fetch class information and student name
             fetch_query = """
             SELECT 
                 s.student_name AS student_name,
@@ -75,20 +76,22 @@ class MySQLDatabase:
                 c.roll_no = %s;
             """
 
-            # Execute the query with the roll_no parameter
             cursor.execute(fetch_query, (roll_no,))
 
-            # Fetch all results
             results = cursor.fetchall()
-            return results
+            for record in results:
+                # Check and convert start_time and end_time to 12-hour format if they are in seconds (timedelta)
+                for time_field in ['start_time', 'end_time']: # If it's in seconds (timedelta)
+                    record[time_field] = timedelta_to_12hr_format(record[time_field])
+
+            return {"status":1,"data":results}
 
         except Error as e:
             logging.error("Error while fetching class data: %s", e)
             traceback.print_exc()
-            return None
+            return {"status":1,"data":None}
 
         finally:
-            # Ensure resources are closed
             if cursor:
                 cursor.close()
             if connection:
@@ -96,11 +99,3 @@ class MySQLDatabase:
 
 
 
-
-credentials = {
-
-}
-
-sql_manager = MySQLDatabase(**credentials)
-
-print(sql_manager.fetch_class_data("101"))
